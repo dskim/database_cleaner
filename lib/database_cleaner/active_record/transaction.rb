@@ -14,12 +14,14 @@ module DatabaseCleaner::ActiveRecord
 
 
     def clean
-      connection_klass.connection.rollback_db_transaction
+      if connection_klass.connection.open_transactions > 0
+        connection_klass.connection.rollback_db_transaction
 
-      if connection_klass.connection.respond_to?(:decrement_open_transactions)
-        connection_klass.connection.decrement_open_transactions
-      else
-        connection_klass.__send__(:decrement_open_transactions)
+        if connection_klass.connection.respond_to?(:decrement_open_transactions)
+          connection_klass.connection.decrement_open_transactions
+        else
+          connection_klass.__send__(:decrement_open_transactions)
+        end
       end
     end
   end
